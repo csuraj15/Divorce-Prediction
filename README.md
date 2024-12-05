@@ -1,2 +1,3 @@
 # Divorce-Prediction
-Using FFTrees and OneR models and generating a HTML document for easier sharing
+Using FFTrees and OneR models.
+R markdown is used to generate a HTML document for easier sharing
