@@ -1,0 +1,83 @@
+---
+title: "Divorce_Predict"
+author: "Suraj Chatakondu"
+date: "2023-10-20"
+output: html_document
+---
+DIVORCE PREDICTION::
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setting a working directory and loading the required packages using pacman
+
+```{r}
+setwd("~/Documents/Mac Projects")
+pacman:: p_load("FFTrees","OneR","caTools","optbin")
+```
+
+## Reading the dataset
+```{r}
+divorce = read.csv("divorce.csv", header = TRUE, sep = ";")
+#head(divorce,5)
+```
+
+
+## Coverting the integers into logical values for the Column "Class"
+
+```{r echo=FALSE}
+table(divorce$Class)
+divorce$Class = as.logical(divorce$Class)
+```
+## Creating training and testing sets from the main dataset using caTools
+```{r}
+set.seed(123)
+sample <- sample.split(divorce$Class, SplitRatio = 0.7)
+divorce.train <- subset(divorce, sample == TRUE)
+divorce.test <- subset(divorce, sample == FALSE)
+```
+## FFT Trees method application
+```{r}
+divorce.fft <- FFTrees(formula = Class ~.,
+                     data = divorce.train,
+                     data.test = divorce.test,
+                     main = "Doomed Marriage",
+                     decision.labels = c("Married", "Divorced"))
+```
+## Plotting the tree model for visualisation with and without stats
+```{r}
+#With the training data
+divorce.fft
+#To visualise the FFTree with test data
+plot(divorce.fft, data = divorce)
+#To see the decision tree without stats
+plot(divorce.fft, what="tree")
+```
+## Creating a model using OneR method
+```{r}
+divorce.OneR = OneR::optbin(divorce)
+model_OneR = OneR(divorce.OneR, verbose = TRUE)
+```
+#Summarising and plotting the OneR model
+```{r}
+summary(model_OneR)
+plot(model_OneR)
+```
+
+#Using the data in the built model for prediction and evaluating the results
+```{r}
+prediction <- predict(model_OneR, divorce.OneR)
+eval_model(prediction,divorce.OneR)
+```
+##Conclusion
+Among all the phrases, No.18 and No.40 could be used to predict the status of marriage. Lets dive into the results based on two methods we have implemented:
+
+1. FFTrees: If the couple thinks "My spouse and I have similar ideas about how marriage should be"(No.18), and sometimes they say,"We're just starting a discussion before I know what's going on"(No.40) they still will be married. But if they don't have similar ideas about how marriage should be and have discussions before they know what's going on, that couple will end up in a divorce.
+
+FFT has predicted divorce with an accuracy of 98.24% involving No.18 and 97.06% involving No.40, But overall it gave a tree diagram which shows the relation between those two phrases and their importance.
+
+2. OneR: Phrase No.18 is of main importance. Whether a couple stays married or divorced depends if they have similar ideas about how a marraige should be.Even OneR predicted the marriage destiny with same accuracy of 98.24% using phrase No.18.
+
+In Coclusion, I believe it to be a combination of phrases not just one. So, I would consider FFT with one level and agree with their output that two of the arguments proved to be the accuracte predictors of the marriage status.
+
